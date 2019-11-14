@@ -41,8 +41,10 @@ task_context "Task" do
     input_port "img_in_right", "base::samples::frame::Frame"
 
     output_port "vo_out", "base::samples::RigidBodyState"
+    output_port "delta_vo_out", "base::samples::RigidBodyState"
     output_port "processed_frame_left", "base::samples::frame::Frame"
     output_port "processed_frame_right", "base::samples::frame::Frame"
+    output_port "computation_time", "double"
 
     port_driven
 end

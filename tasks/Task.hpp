@@ -5,6 +5,19 @@
 
 #include "spartan/TaskBase.hpp"
 
+#include <spartan/Config.hpp>
+#include <spartan/CalibInfo.hpp>
+#include <spartan/ImageLoader.hpp>
+#include <spartan/OdometryExecutor.hpp>
+
+#include <base/samples/RigidBodyState.hpp>
+
+#include <vector>
+#include <Eigen/Dense>
+#include <ctime>
+
+using namespace Eigen;
+
 namespace spartan{
 
     /*! \class Task
@@ -32,7 +45,14 @@ the implementation details.
 	friend class TaskBase;
     protected:
 
-
+        vector<double> centeredPose;
+        ImageLoader *mpil;
+        OdometryExecutor *mpoe;
+        uint8_t camera_feed_code;
+        void logProcessedFrames();
+        base::samples::RigidBodyState RBS_new, RBS_old, RBS_delta;
+        Eigen::Affine3d T_new, T_old, T_delta;
+        double vo_computation_time;
 
     public:
         /** TaskContext constructor for Task

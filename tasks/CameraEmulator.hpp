@@ -4,6 +4,22 @@
 #define SPARTAN_CAMERAEMULATOR_TASK_HPP
 
 #include "spartan/CameraEmulatorBase.hpp"
+#include <base/samples/Frame.hpp>
+#include <spartan/Config.hpp>
+
+// WARNING: jpegio.h has no #ifdef __cplusplus guards, unlike other
+// included SPARTAN files. So, it must be added here!
+extern "C" {
+#include <jpegio.h>
+}
+
+#include <string>
+#include <stdio.h>
+#include <cstdlib>
+
+#include <Eigen/Dense>
+
+#define MAX_STR_LEN 256
 
 namespace spartan{
 
@@ -15,10 +31,7 @@ namespace spartan{
 with datasets stored on disk. Currently only supports .jpg/.jpeg
 folders of images. After correct configuration will read images from
 disk and serve them as frames in its output, at the period specified
-below. It can additionally output a pose, which for now is just a static
-transform meant to aid in the debugging of MappingTask, however you
-can edit the CameraEmulator.cpp file to take a text file path from
-the CameraEmuConfig options and read poses from there instead.
+below.
      * \details
      * The name of a TaskContext is primarily defined via:
      \verbatim
@@ -33,7 +46,11 @@ the CameraEmuConfig options and read poses from there instead.
 	friend class CameraEmulatorBase;
     protected:
 
+        int frame_counter;
+        base::samples::frame::Frame *readImage(char[]);
+        base::samples::RigidBodyState generateRBS_out();
 
+        CameraEmuConfig mConfig;
 
     public:
         /** TaskContext constructor for CameraEmulator
@@ -41,6 +58,7 @@ the CameraEmuConfig options and read poses from there instead.
          * \param initial_state The initial TaskState of the TaskContext. Default is Stopped state.
          */
         CameraEmulator(std::string const& name = "spartan::CameraEmulator");
+        //CameraEmulator(const& CameraEmuConfig config = CameraEmuConfig());
 
         /** Default deconstructor of CameraEmulator
          */

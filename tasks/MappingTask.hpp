@@ -5,21 +5,36 @@
 
 #include "spartan/MappingTaskBase.hpp"
 
+#include <spartan/Config.hpp>
+#include <spartan/CalibInfo.hpp>
+#include <spartan/ImageLoader.hpp>
+#include <spartan/MappingExecutor.hpp>
+
+#include <base/samples/RigidBodyState.hpp>
+
+#include <vector>
+#include <Eigen/Dense>
+
+using namespace Eigen;
+
 namespace spartan{
 
-    /*! \class MappingTask
+    /*! \class Task
      * \brief The task context provides and requires services. It uses an ExecutionEngine to perform its functions.
      * Essential interfaces are operations, data flow ports and properties. These interfaces have been defined using the oroGen specification.
      * In order to modify the interfaces you should (re)use oroGen and rely on the associated workflow.
-     * This is the mapping task for SPARTAN
-{left frame, right frame, world2body transform} => {point map of field of view}
-Additional outputs for logging the camera frames that are
-fed into the mapper
+     * This is the main VO task:
+{left frame, right frame} => {cumulative pose with respect to origin}
+additional outputs are available, i.e. "processed_frame_*", to help
+with visualizing what frames are fed to the core VO algorithm after
+any preprocessing steps. These frames correspond to the initial images
+after undistortion, rectification and rescaling, see ImageLoader for
+the implementation details.
      * \details
      * The name of a TaskContext is primarily defined via:
      \verbatim
      deployment 'deployment_name'
-         task('custom_task_name','spartan::MappingTask')
+         task('custom_task_name','spartan::Task')
      end
      \endverbatim
      *  It can be dynamically adapted when the deployment is called with a prefix argument.
@@ -29,16 +44,20 @@ fed into the mapper
 	friend class MappingTaskBase;
     protected:
 
-
+        base::samples::RigidBodyState w2b_tf;
+        ImageLoader *mpil;
+        MappingExecutor *mpme;
+        uint8_t camera_feed_code;
+        void logProcessedFrames();
 
     public:
-        /** TaskContext constructor for MappingTask
+        /** TaskContext constructor for Task
          * \param name Name of the task. This name needs to be unique to make it identifiable via nameservices.
          * \param initial_state The initial TaskState of the TaskContext. Default is Stopped state.
          */
         MappingTask(std::string const& name = "spartan::MappingTask");
 
-        /** Default deconstructor of MappingTask
+        /** Default deconstructor of Task
          */
 	~MappingTask();
 
