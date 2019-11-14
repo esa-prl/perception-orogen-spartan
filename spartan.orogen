@@ -1,0 +1,104 @@
+name "spartan"
+
+import_types_from "spartanTypes.hpp"
+
+using_library "spartan"
+# import_types_from "spartan/CustomType.hpp"
+
+import_types_from "std"
+import_types_from "base"
+import_types_from "spartan/Config.hpp"
+
+
+# This is the main VO task:
+# {left frame, right frame} => {cumulative pose with respect to origin}
+# additional outputs are available, i.e. "processed_frame_*", to help
+# with visualizing what frames are fed to the core VO algorithm after
+# any preprocessing steps. These frames correspond to the initial images
+# after undistortion, rectification and rescaling, see ImageLoader for
+# the implementation details.
+task_context "Task" do
+    needs_configuration
+
+    property "calibration_confs", "/spartan/OdometryConfig"
+
+    # Static transform, if dynamic uncomment lines for alignment
+    # and restructure code for callbacks as per the ROCK docks
+    # found here:
+    # https://www.rock-robotics.org/documentation/data_processing/transformer.html
+    # and in the "... in oroGen" and "... at runtime"
+    # WARNING: As opposed to the standards by ROCK's syskit, frame names
+    # are "global", in the sense that they match the filename included by
+    # the .rb script that drives this entire project, so don't rename
+    # these here unless you know what you're doing!!!
+    transformer do
+        transform "left_camera_viso2", "body"
+        #align_port "img_in_left"
+        max_latency 0.5    #may need tuning, value untested!
+    end
+
+    input_port "img_in_left", "base::samples::frame::Frame"
+    input_port "img_in_right", "base::samples::frame::Frame"
+
+    output_port "vo_out", "base::samples::RigidBodyState"
+    output_port "processed_frame_left", "base::samples::frame::Frame"
+    output_port "processed_frame_right", "base::samples::frame::Frame"
+
+    port_driven
+end
+
+
+# This is the mapping task for SPARTAN
+# {left frame, right frame, world2body transform} => {point map of field of view}
+# Additional outputs for logging the camera frames that are
+# fed into the mapper
+task_context "MappingTask" do
+    needs_configuration
+
+    property "calibration_confs", "/spartan/OdometryConfig"
+    property "mapping_confs", "/spartan/MappingConfig"
+
+    # Static transform as in Task
+    transformer do
+        transform "left_camera_viso2", "body"
+        #align_port "img_in_left"
+        max_latency 0.5
+    end
+
+    input_port "img_in_left", "base::samples::frame::Frame"
+    input_port "img_in_right", "base::samples::frame::Frame"
+
+    # If this doesn't satisfy your integration specs, consider
+    # feeding it as a dynamic transform directly from the ROCK
+    # transformer if your localization is updating it, otherwise
+    # pass it manually as input in this port from some other
+    # task
+    input_port "world2body", "base::samples::RigidBodyState"
+
+    output_port "processed_frame_left", "base::samples::frame::Frame"
+    output_port "processed_frame_right", "base::samples::frame::Frame"
+
+    port_driven
+end
+
+
+# This is an auxiliary task, meant to help with testing the framework
+# with datasets stored on disk. Currently only supports .jpg/.jpeg
+# folders of images. After correct configuration will read images from
+# disk and serve them as frames in its output, at the period specified
+# below. It can additionally output a pose, which for now is just a static
+# transform meant to aid in the debugging of MappingTask, however you
+# can edit the CameraEmulator.cpp file to take a text file path from
+# the CameraEmuConfig options and read poses from there instead.
+task_context "CameraEmulator" do
+    needs_configuration
+
+    property "cam_emu_confs", "/spartan/CameraEmuConfig"
+
+    output_port "img_out_left", "base::samples::frame::Frame"
+    output_port "img_out_right", "base::samples::frame::Frame"
+
+    output_port "world2body_transform", "base::samples::RigidBodyState"
+
+    periodic 0.5
+end
