@@ -45,6 +45,9 @@ task_context "Task" do
     output_port "processed_frame_left", "base::samples::frame::Frame"
     output_port "processed_frame_right", "base::samples::frame::Frame"
     output_port "computation_time", "double"
+    output_port "spartan_heading", "double"
+    output_port "spartan_pitch", "double"
+    output_port "spartan_roll", "double"
 
     port_driven
 end

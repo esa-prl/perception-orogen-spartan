@@ -135,7 +135,12 @@ void Task::updateHook()
     
     // update RBS_old
     RBS_old = RBS_new;
-    
+   
+    // output the RPY estimate
+    _spartan_heading.write(RBS_new.getYaw());
+    _spartan_pitch.write(RBS_new.getPitch());
+    _spartan_roll.write(RBS_new.getRoll());
+
     return;
 }
 void Task::errorHook()
