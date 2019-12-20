@@ -10,6 +10,7 @@ calibration_confs:
   shiftBot: 0.0
   ## Exoter BB2 calibration
   calib_path: '/home/marta/rock/perception/orogen/spartan/config/exoter_loccam_calib.yaml'
+  #calib_path: '/home/marta/rock/perception/orogen/spartan/config/navcam_calib.yaml'
   dump_file_path: ''
 # the global name that should be used for the internal left_camera_viso2 frame
 left_camera_viso2_frame: left_camera_viso2
@@ -19,3 +20,5 @@ static_transformations: []
 transformer_max_latency: 0.5
 # Minimum system time in seconds between two updates of the status ports
 transformer_status_period: 1.0
+# desired period of the VO estimates (must be GREATER than the camera period)
+desired_period: 1.4286

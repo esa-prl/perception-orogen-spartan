@@ -15,6 +15,18 @@ Task::~Task()
 {
 }
 
+/*
+void Task::mast_to_ptu_inTransformerCallback(base::Time const& timestamp, base::samples::RigidBodyState const& sample)
+{
+    if (!_left_camera_navcam2body.get(timestamp, lcam2body_tf, false))
+    {
+        std::cerr << "Unable to retrieve transform!" << std::endl;
+        exit(1);
+    }
+}
+*/
+
+
 // Simple logging utility for seeing frames right before SPARTAN
 // core receives them, i.e. after any calibration/undistortion has
 // been applied. To view, find the appropriate log folder and run:
@@ -41,8 +53,11 @@ bool Task::configureHook()
 
     mpil = new ImageLoader(_calibration_confs.get());
 
+    period_des_s =_desired_period.value(); // 5;
+    wait_des = 0.0; //8.0
+    first_vo_computed = false;
     CalibInfo ci = mpil->getCalibInfo();
-    Affine3d lcam2body_tf;
+    //Affine3d lcam2body_tf;
     RBS_old.setTransform( Affine3d::Identity() );
     base::Time ts;
     if (!_left_camera_viso22body.get(ts, lcam2body_tf, true)) {
@@ -51,6 +66,9 @@ bool Task::configureHook()
     }
     mpoe = new OdometryExecutor(_calibration_confs.get(),
             ci, lcam2body_tf);
+
+    start = true;
+    //std::this_thread::sleep_for(std::chrono::seconds(5));
 
     return mpoe != NULL && mpil != NULL;
 }
@@ -64,6 +82,16 @@ void Task::updateHook()
 {
     TaskBase::updateHook();
 
+    base::samples::RigidBodyState lcam2body_rbs;
+    lcam2body_rbs.setTransform(lcam2body_tf);
+    _mast_to_ptu_out.write(lcam2body_rbs);
+
+    if (start)
+    {
+        start_time = base::Time::now();
+        start = false;
+    }
+
     base::samples::frame::Frame incoming =
         base::samples::frame::Frame();
 
@@ -74,11 +102,11 @@ void Task::updateHook()
     // the application has not consumed in the past, otherwise
     // old data will continually be read each time.
     if (_img_in_left.read(incoming) == RTT::NewData) {
-        //std::cout << "SVO RECEIVED LEFT" << std::endl;
+        std::cout << "SVO RECEIVED LEFT" << std::endl;
         mpil->newFrame(LEFT_CAMERA_FEED, &incoming);
         found_fresh = true;
     } else if (_img_in_right.read(incoming) == RTT::NewData) {
-        //std::cout << "SVO RECEIVED RIGHT" << std::endl;
+        std::cout << "SVO RECEIVED RIGHT" << std::endl;
         mpil->newFrame(RIGHT_CAMERA_FEED, &incoming);
         found_fresh = true;
     }
@@ -100,46 +128,80 @@ void Task::updateHook()
         return;
     }
 
-    // Request next pose from OdometryExecutor
-    std::clock_t begin = std::clock();
-    mpoe->nextPose(*fp, centeredPose);
-    std::clock_t end = std::clock();
-    vo_computation_time = static_cast<double>(end - begin) / CLOCKS_PER_SEC;
-    _computation_time.write(vo_computation_time);
+    std::cout << "time_diff_VO: " << (incoming.time - RBS_old.time).toSeconds() << std::endl;
+    //std::cout << "incoming time: " << incoming.time.toSeconds() << std::endl;
+    //std::cout << "rbs_old time: " << RBS_old.time.toSeconds() << std::endl;
+    std::cout << "period s: " << base::Time::fromSeconds(period_des_s) << std::endl;
+    //std::cout << "t from start var: " << current_time.toSeconds() << std::endl;
+    std::cout << "t from start: " << (base::Time::now() - start_time).toSeconds() << std::endl;
+    if ( (base::Time::now() - start_time).toSeconds() > wait_des || !first_vo_computed )
+    {
+        std::cout << "VO Intial wait passed" << std::endl;
 
-    // Uncomment this line to log frames right before they enter
-    // the SPARTAN core algorithm
-    logProcessedFrames();
+        if ( (incoming.time - RBS_old.time).toSeconds() > period_des_s || !first_vo_computed )
+        {
+            std::cout << "computing VO" << std::endl;
+            first_vo_computed = true;
 
-    printf("\nCentered pose updated:\n");
-    for (float elem : centeredPose) {
-        printf("%f\n", elem);
+            // Request next pose from OdometryExecutor
+            std::clock_t begin = std::clock();
+            //_start_computation_time.write(base::Time::now().toMicroseconds());
+            mpoe->nextPose(*fp, centeredPose);
+            std::clock_t end = std::clock();
+            vo_computation_time = static_cast<double>(end - begin) / CLOCKS_PER_SEC;
+            _computation_time.write(vo_computation_time);
+
+            // Uncomment this line to log frames right before they enter
+            // the SPARTAN core algorithm
+            logProcessedFrames();
+
+            printf("\nCentered pose updated:\n");
+            for (float elem : centeredPose) {
+                printf("%f\n", elem);
+            }
+
+            // Write the output pose to the output port, formatted
+            // as a RigidBodyState
+            RBS_new = mpoe->getRBS();
+            RBS_new.time = incoming.time;
+            _vo_out.write(RBS_new);
+
+            // Optionally do extra stuff with the updated vo_state struct
+            //vostate *temp = mpoe->getVisOdomState();
+
+            // Compute and output the delta_pose (T_new = T_delta*T_old) converted to RigidBodyState
+            T_new = RBS_new.getTransform();
+            T_old = RBS_old.getTransform();
+            T_delta = T_old.inverse()*T_new;
+            RBS_delta.setTransform(T_delta);
+            RBS_delta.time = incoming.time;
+            _delta_vo_out.write(RBS_delta);
+
+            // update RBS_old
+            RBS_old = RBS_new;
+
+            // output the RPY estimate
+            _spartan_heading.write(RBS_new.getYaw());
+            _spartan_pitch.write(RBS_new.getPitch());
+            _spartan_roll.write(RBS_new.getRoll());
+
+        }
+        else
+        {
+            std::cout << "waiting for desired VO period" << std::endl;
+            std::cout << "---" << std::endl << "---" << std::endl << "---" << std::endl << "---" << std::endl << "---" << std::endl << "---" << std::endl << std::endl;
+            return;
+        }
+    }
+    else
+    {
+        std::cout << "Waiting for initial VO delay" << std::endl;
+        std::cout << "---" << std::endl << "---" << std::endl << "---" << std::endl << "---" << std::endl << "---" << std::endl << "---" << std::endl << std::endl;
+        return;
     }
 
-    // Write the output pose to the output port, formatted
-    // as a RigidBodyState
-    RBS_new = mpoe->getRBS();
-    RBS_new.time = incoming.time;
-    _vo_out.write(RBS_new);
 
-    // Optionally do extra stuff with the updated vo_state struct
-    //vostate *temp = mpoe->getVisOdomState();
-    
-    // Compute and output the delta_pose (T_new = T_delta*T_old) converted to RigidBodyState
-    T_new = RBS_new.getTransform();
-    T_old = RBS_old.getTransform();
-    T_delta = T_old.inverse()*T_new;
-    RBS_delta.setTransform(T_delta);
-    RBS_delta.time = incoming.time;
-    _delta_vo_out.write(RBS_delta);
-    
-    // update RBS_old
-    RBS_old = RBS_new;
-   
-    // output the RPY estimate
-    _spartan_heading.write(RBS_new.getYaw());
-    _spartan_pitch.write(RBS_new.getPitch());
-    _spartan_roll.write(RBS_new.getRoll());
+    std::cout << "---" << std::endl << "---" << std::endl << "---" << std::endl << "---" << std::endl << "---" << std::endl << "---" << std::endl << std::endl;
 
     return;
 }

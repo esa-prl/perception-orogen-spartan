@@ -21,6 +21,14 @@ task_context "Task" do
     needs_configuration
 
     property "calibration_confs", "/spartan/OdometryConfig"
+    property("desired_period","double").
+        doc "desired period of the VO estiamtes"
+
+
+    input_port "img_in_left", "base::samples::frame::Frame"
+    input_port "img_in_right", "base::samples::frame::Frame"
+    input_port "mast_to_ptu_in", "base/samples/RigidBodyState"
+
 
     # Static transform, if dynamic uncomment lines for alignment
     # and restructure code for callbacks as per the ROCK docks
@@ -33,15 +41,14 @@ task_context "Task" do
     # these here unless you know what you're doing!!!
     transformer do
         transform "left_camera_viso2", "body"
-        #align_port "img_in_left"
+        #transform "left_camera_navcam", "body"
+        #align_port "mast_to_ptu_in"
         max_latency 0.5    #may need tuning, value untested!
     end
 
-    input_port "img_in_left", "base::samples::frame::Frame"
-    input_port "img_in_right", "base::samples::frame::Frame"
-
     output_port "vo_out", "base::samples::RigidBodyState"
     output_port "delta_vo_out", "base::samples::RigidBodyState"
+    output_port "mast_to_ptu_out", "base::samples::RigidBodyState"
     output_port "processed_frame_left", "base::samples::frame::Frame"
     output_port "processed_frame_right", "base::samples::frame::Frame"
     output_port "computation_time", "double"

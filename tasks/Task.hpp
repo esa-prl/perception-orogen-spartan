@@ -16,6 +16,10 @@
 #include <Eigen/Dense>
 #include <ctime>
 
+#include <thread>
+#include <chrono>
+
+
 using namespace Eigen;
 
 namespace spartan{
@@ -52,7 +56,14 @@ the implementation details.
         void logProcessedFrames();
         base::samples::RigidBodyState RBS_new, RBS_old, RBS_delta;
         Eigen::Affine3d T_new, T_old, T_delta;
-        double vo_computation_time;
+        Affine3d lcam2body_tf;
+        double vo_computation_time, period_des_s, wait_des;
+        bool first_vo_computed, start;
+        //Affine3d lcam2body_tf;
+        base::Time start_time, current_time;
+
+    //protected:
+        //virtual void mast_to_ptu_inTransformerCallback(base::Time const& timestamp, base::samples::RigidBodyState const& sample);
 
     public:
         /** TaskContext constructor for Task
