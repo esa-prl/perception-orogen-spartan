@@ -23,6 +23,8 @@ task_context "Task" do
     property "calibration_confs", "/spartan/OdometryConfig"
     property("desired_period","double").
         doc "desired period of the VO estiamtes"
+    property("wait_des","double").
+        doc "initial waiting time at startup"
 
 
     input_port "img_in_left", "base::samples::frame::Frame"

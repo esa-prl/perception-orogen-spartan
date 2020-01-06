@@ -21,4 +21,6 @@ transformer_max_latency: 0.5
 # Minimum system time in seconds between two updates of the status ports
 transformer_status_period: 1.0
 # desired period of the VO estimates (must be GREATER than the camera period)
-desired_period: 1.4286
+desired_period: 0
+# initial waiting time f the VO vomputation at startup
+wait_des: 8.0

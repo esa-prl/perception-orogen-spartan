@@ -53,8 +53,8 @@ bool Task::configureHook()
 
     mpil = new ImageLoader(_calibration_confs.get());
 
-    period_des_s =_desired_period.value(); // 5;
-    wait_des = 0.0; //8.0
+    period_des_s =_desired_period.value();
+    wait_des = _wait_des.value(); //8.0;
     first_vo_computed = false;
     CalibInfo ci = mpil->getCalibInfo();
     //Affine3d lcam2body_tf;
