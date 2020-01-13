@@ -1,7 +1,0 @@
----
-- time: 20191114-1409
-  cmdline: "./mapper_offline.rb "
-  robot_name: default
-  robot_type: default
-  app_name: scripts
-  app_dir: "/home/marta/rock/perception/orogen/spartan/scripts"

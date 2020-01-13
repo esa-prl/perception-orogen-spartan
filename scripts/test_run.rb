@@ -36,6 +36,7 @@ Orocos::Process.run 'spartan::Task' => 'spartan',
     spartan.start
 
     # Logging
+    Orocos.log_all_ports
     spartan.log_all_ports
 
     # Wait for user interrupt

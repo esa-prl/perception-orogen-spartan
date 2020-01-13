@@ -1,0 +1,65 @@
+--- name:default
+# the global name that should be used for the internal body frame
+body_frame: body
+# no documentation available for this property
+calibration_confs:
+  spartanWidth: 1120
+  spartanHeight: 1259
+  vertical: 1.0
+  horizontal: 1.0
+  shiftBot: 0.0
+  dump_file_path: ''    # Unused here
+  # Except for this one
+  ## For SPARTAN original test image pair
+  #calib_path: '/home/galar/compass/software/vomap/src/build/sweep/input_data/mapping.yaml'
+  ## For SPARTAN vo image pair
+  #calib_path: '/home/galar/compass/software/vomap/src/build/sweep/input_data/vo_path/mapping_vo.yaml'
+  ## For custom testing
+  #calib_path: '/home/galar/Documents/myts/mapping/lab_data/calibration.yaml'
+  ## For NavCam testing
+  calib_path: '/home/galar/Documents/navcam_feed/navcam_calib.yaml'
+# the global name that should be used for the internal left_camera_viso2 frame
+left_camera_viso2_frame: left_camera_viso2
+# list of static transformations
+static_transformations: []
+# Maximum time in seconds the transformer will wait until it starts dropping samples
+transformer_max_latency: 0.5
+# Minimum system time in seconds between two updates of the status ports
+transformer_status_period: 1.0
+# no documentation available for this property
+mapping_confs:
+  ndepths: 301
+  depthMode: 0  #0=LINEAR_DEPTHS, 1=EXPONENTIAL_DEPTHS
+  matchKernelSide: 13
+  mapWidth: 1120    #1120/horizontal
+  mapHeight: 1259   #1120/vertical
+  start_frame: 0
+  dstart: 0.5
+  dend: 4.5
+  verticalDistance: 0.93
+  horizontalDistance: 0.93
+  gridStep: 0.00083
+  xOffset: 0.0
+  yOffset: 0.0
+  correlationThresh: 0.65
+  vertical: 0.89
+  horizontal: 1.0
+  shiftBot: 0.0
+  filterK: 20
+  filterS: 1.5
+  voxelFactor: 0.5
+  voxelSize: 0.04
+  includeColors: true
+  calib_path: '/home/galar/Documents/navcam_feed/navcam_calib.yaml'
+  #calib_path: '/home/galar/Documents/myts/mapping/lab_data/calibration.yaml'
+  ## For SPARTAN original test image pair
+  #calib_path: '/home/galar/compass/software/vomap/src/build/sweep/input_data/mapping.yaml'
+  ## For SPARTAN vo image pair
+  #calib_path: '/home/galar/compass/software/vomap/src/build/sweep/input_data/vo_path/mapping_vo.yaml'
+  dump_file_path: '/home/galar/compass/software/vomap/src/build/sweep/outres/pipelined_map.txt'
+# list of static transformations
+static_transformations: []
+# Maximum time in seconds the transformer will wait until it starts dropping samples
+transformer_max_latency: 0.5
+# Minimum system time in seconds between two updates of the status ports
+transformer_status_period: 1.0

@@ -15,7 +15,7 @@ CameraEmulator::~CameraEmulator()
 {
 }
 
-base::samples::frame::Frame * CameraEmulator::readImage(char filename[])
+base::samples::frame::Frame *CameraEmulator::readImage(char filename[])
 {
     printf("%s\n", filename);
 
@@ -24,6 +24,7 @@ base::samples::frame::Frame * CameraEmulator::readImage(char filename[])
     // WARNING: fp has been CLOSED by the read_JPEG_fp function,
     // don't close it again here!
     FILE *fp;
+
     if ((fp = fopen(filename, "rb")) == NULL) {
         fprintf(stderr, "Error opening JPG file pointer: %s\n", filename);
         return NULL;
@@ -55,8 +56,7 @@ base::samples::frame::Frame * CameraEmulator::readImage(char filename[])
     // but if other formats are involved they may need to be coded
     // in manually (see <ROCK_INSTALL_DIR>/base/types/src/samples/Frame.hpp
     // for a complete list of options)
-    base::samples::frame::Frame *ret =
-        new base::samples::frame::Frame(
+    auto ret = new base::samples::frame::Frame(
                 width,
                 height,
                 bpp,
@@ -71,6 +71,7 @@ base::samples::frame::Frame * CameraEmulator::readImage(char filename[])
     );
 
     ret->time = base::Time::now();
+    ret->setStatus(base::samples::frame::STATUS_VALID);
 
     /* Use this block when debugging to check if file-IO is sane */
     //int response = isjpg(filename);
@@ -84,6 +85,7 @@ base::samples::frame::Frame * CameraEmulator::readImage(char filename[])
     //    std::cout << "NO" << std::endl;
     //}
 
+    free(image_data);
     return ret;
 }
 
@@ -170,22 +172,31 @@ void CameraEmulator::updateHook()
     /* If the simulation sends left frames before right frames */
     if (mConfig.delay > 0) {
         left_frame = readImage(leftFileName);
-        if (left_frame != NULL) _img_out_left.write(*left_frame);
+        if (left_frame != NULL) {
+            _img_out_left.write(left_frame);
+        }
         sleep(mConfig.delay);
         right_frame = readImage(rightFileName);
-        if (right_frame != NULL) _img_out_right.write(*right_frame);
+        if (right_frame != NULL) {
+            _img_out_right.write(right_frame);
+        }
     }
     /* Else if the right frames come before the left ones */
     else {
         right_frame = readImage(rightFileName);
-        if (right_frame != NULL) _img_out_right.write(*right_frame);
+        if (right_frame != NULL) {
+            std::cout << "CAM_EMU packing RIGHT" << std::endl;
+            _img_out_right.write(right_frame);
+        }
         sleep(-(mConfig.delay));
         left_frame = readImage(leftFileName);
-        if (left_frame != NULL) _img_out_left.write(*left_frame);
+        if (left_frame != NULL) {
+            _img_out_left.write(left_frame);
+        }
     }
     // Note in the above that we need to check for NULLs, in case
     // the input feeds have been exhausted.
-
+    
     // Increment the frame counter to iterate to the next files
     frame_counter++;
     return;

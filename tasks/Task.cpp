@@ -8,7 +8,7 @@ using namespace Eigen;
 Task::Task(std::string const& name)
     : TaskBase(name)
 {
-    centeredPose = vector<double>(NUM_QRTPARAMS);
+    centeredPose = std::vector<double>(NUM_QRTPARAMS);
 }
 
 Task::~Task()
@@ -34,8 +34,8 @@ void Task::mast_to_ptu_inTransformerCallback(base::Time const& timestamp, base::
 void Task::logProcessedFrames()
 {
     base::samples::frame::Frame
-        proc_frame_left = mpoe->getImgFrame(0),
-        proc_frame_right = mpoe->getImgFrame(1);
+        *proc_frame_left = mpoe->getImgFrame(0),
+        *proc_frame_right = mpoe->getImgFrame(1);
 
     _processed_frame_left.write(proc_frame_left);
     _processed_frame_right.write(proc_frame_right);
@@ -92,8 +92,8 @@ void Task::updateHook()
         start = false;
     }
 
-    base::samples::frame::Frame incoming =
-        base::samples::frame::Frame();
+    RTT::extras::ReadOnlyPointer<base::samples::frame::Frame> incoming;
+    base::samples::frame::Frame *incFrame;
 
     bool found_fresh = false;
     // WARNING: When checking for _input_port.read(...) it makes
@@ -102,13 +102,15 @@ void Task::updateHook()
     // the application has not consumed in the past, otherwise
     // old data will continually be read each time.
     if (_img_in_left.read(incoming) == RTT::NewData) {
-        std::cout << "SVO RECEIVED LEFT" << std::endl;
-        mpil->newFrame(LEFT_CAMERA_FEED, &incoming);
+        incFrame = new Frame(*incoming);
+        mpil->newFrame(LEFT_CAMERA_FEED, incFrame);
         found_fresh = true;
+        delete incFrame;
     } else if (_img_in_right.read(incoming) == RTT::NewData) {
-        std::cout << "SVO RECEIVED RIGHT" << std::endl;
-        mpil->newFrame(RIGHT_CAMERA_FEED, &incoming);
+        incFrame = new Frame(*incoming);
+        mpil->newFrame(RIGHT_CAMERA_FEED, incFrame);
         found_fresh = true;
+        delete incFrame;
     }
     // Even though the task is port triggerred, this needs to be
     // here to accomodate the fact that updateHook is called when
@@ -128,17 +130,17 @@ void Task::updateHook()
         return;
     }
 
-    std::cout << "time_diff_VO: " << (incoming.time - RBS_old.time).toSeconds() << std::endl;
+    //std::cout << "time_diff_VO: " << (incoming.time - RBS_old.time).toSeconds() << std::endl;
     //std::cout << "incoming time: " << incoming.time.toSeconds() << std::endl;
     //std::cout << "rbs_old time: " << RBS_old.time.toSeconds() << std::endl;
-    std::cout << "period s: " << base::Time::fromSeconds(period_des_s) << std::endl;
+    //std::cout << "period s: " << base::Time::fromSeconds(period_des_s) << std::endl;
     //std::cout << "t from start var: " << current_time.toSeconds() << std::endl;
-    std::cout << "t from start: " << (base::Time::now() - start_time).toSeconds() << std::endl;
+    //std::cout << "t from start: " << (base::Time::now() - start_time).toSeconds() << std::endl;
     if ( (base::Time::now() - start_time).toSeconds() > wait_des || !first_vo_computed )
     {
         std::cout << "VO Intial wait passed" << std::endl;
 
-        if ( (incoming.time - RBS_old.time).toSeconds() > period_des_s || !first_vo_computed )
+        if ( (incoming->time - RBS_old.time).toSeconds() > period_des_s || !first_vo_computed )
         {
             std::cout << "computing VO" << std::endl;
             first_vo_computed = true;
@@ -163,7 +165,7 @@ void Task::updateHook()
             // Write the output pose to the output port, formatted
             // as a RigidBodyState
             RBS_new = mpoe->getRBS();
-            RBS_new.time = incoming.time;
+            RBS_new.time = incoming->time;
             _vo_out.write(RBS_new);
 
             // Optionally do extra stuff with the updated vo_state struct
@@ -174,7 +176,7 @@ void Task::updateHook()
             T_old = RBS_old.getTransform();
             T_delta = T_old.inverse()*T_new;
             RBS_delta.setTransform(T_delta);
-            RBS_delta.time = incoming.time;
+            RBS_delta.time = incoming->time;
             _delta_vo_out.write(RBS_delta);
 
             // update RBS_old

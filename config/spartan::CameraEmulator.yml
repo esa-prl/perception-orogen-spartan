@@ -3,8 +3,8 @@
 cam_emu_confs:
   delay: 0.01
   start_index: 25
-  img_dir: '/home/galar/Documents/myts/matteo_seq/'
-  #img_dir: '/home/galar/Documents/devon/devon_usable/'
+  img_dir: '/home/marta/Documents/myts/matteo_seq/'
+  #img_dir: '/home/marta/Documents/devon/devon_usable/'
   right_dir: ''
   left_dir: ''
   left_mark: 'left'
@@ -23,7 +23,10 @@ cam_emu_confs:
   traz: 0.0
   start_index: 0
   ## For original SPARTAN data
-  img_dir: '/home/marta/compass/software/vomap/src/build/sweep/input_data/'
+  #img_dir: '/home/marta/compass/software/vomap/src/build/sweep/input_data/'
+  ## For SPARTAN data from VO path
+  #img_dir: '/home/marta/compass/software/vomap/src/build/sweep/input_data/vo_path/'
+  img_dir: '/home/marta/Documents/myts/mapping/lab_data/'
   right_dir: ''
   left_dir: ''
   left_mark: 'left'

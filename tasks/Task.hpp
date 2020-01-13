@@ -49,7 +49,7 @@ the implementation details.
 	friend class TaskBase;
     protected:
 
-        vector<double> centeredPose;
+        std::vector<double> centeredPose;
         ImageLoader *mpil;
         OdometryExecutor *mpoe;
         uint8_t camera_feed_code;

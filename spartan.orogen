@@ -25,10 +25,7 @@ task_context "Task" do
         doc "desired period of the VO estiamtes"
     property("wait_des","double").
         doc "initial waiting time at startup"
-
-
-    input_port "img_in_left", "base::samples::frame::Frame"
-    input_port "img_in_right", "base::samples::frame::Frame"
+    
     input_port "mast_to_ptu_in", "base/samples/RigidBodyState"
 
 
@@ -43,16 +40,18 @@ task_context "Task" do
     # these here unless you know what you're doing!!!
     transformer do
         transform "left_camera_viso2", "body"
-        #transform "left_camera_navcam", "body"
-        #align_port "mast_to_ptu_in"
+        #align_port "img_in_left"
         max_latency 0.5    #may need tuning, value untested!
     end
+
+    input_port "img_in_left", ro_ptr("base::samples::frame::Frame")
+    input_port "img_in_right", ro_ptr("base::samples::frame::Frame")
 
     output_port "vo_out", "base::samples::RigidBodyState"
     output_port "delta_vo_out", "base::samples::RigidBodyState"
     output_port "mast_to_ptu_out", "base::samples::RigidBodyState"
-    output_port "processed_frame_left", "base::samples::frame::Frame"
-    output_port "processed_frame_right", "base::samples::frame::Frame"
+    output_port "processed_frame_left", ro_ptr("base::samples::frame::Frame")
+    output_port "processed_frame_right", ro_ptr("base::samples::frame::Frame")
     output_port "computation_time", "double"
     output_port "spartan_heading", "double"
     output_port "spartan_pitch", "double"
@@ -79,8 +78,8 @@ task_context "MappingTask" do
         max_latency 0.5
     end
 
-    input_port "img_in_left", "base::samples::frame::Frame"
-    input_port "img_in_right", "base::samples::frame::Frame"
+    input_port "img_in_left", ro_ptr("base::samples::frame::Frame")
+    input_port "img_in_right", ro_ptr("base::samples::frame::Frame")
 
     # If this doesn't satisfy your integration specs, consider
     # feeding it as a dynamic transform directly from the ROCK
@@ -89,8 +88,9 @@ task_context "MappingTask" do
     # task
     input_port "world2body", "base::samples::RigidBodyState"
 
-    output_port "processed_frame_left", "base::samples::frame::Frame"
-    output_port "processed_frame_right", "base::samples::frame::Frame"
+    output_port "processed_frame_left", ro_ptr("base::samples::frame::Frame")
+    output_port "processed_frame_right", ro_ptr("base::samples::frame::Frame")
+    output_port "map_out", "base::samples::Pointcloud"
 
     port_driven
 end
@@ -109,8 +109,8 @@ task_context "CameraEmulator" do
 
     property "cam_emu_confs", "/spartan/CameraEmuConfig"
 
-    output_port "img_out_left", "base::samples::frame::Frame"
-    output_port "img_out_right", "base::samples::frame::Frame"
+    output_port "img_out_left", ro_ptr("base::samples::frame::Frame")
+    output_port "img_out_right", ro_ptr("base::samples::frame::Frame")
 
     output_port "world2body_transform", "base::samples::RigidBodyState"
 

@@ -44,6 +44,7 @@ the implementation details.
 	friend class MappingTaskBase;
     protected:
 
+        int frame_num_left, frame_num_right;
         base::samples::RigidBodyState w2b_tf;
         ImageLoader *mpil;
         MappingExecutor *mpme;
