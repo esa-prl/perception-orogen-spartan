@@ -82,6 +82,13 @@ void Task::updateHook()
 {
     TaskBase::updateHook();
 
+    std::cout << std::endl;
+    std::cout << "This is SPARTAN!!!!!!     " << std::endl << std::endl;
+    std::cout << " O                        " << std::endl;
+    std::cout << "/|\\       ==             " << std::endl;
+    std::cout << " |__     ===     \\__\\O  " << std::endl;
+    std::cout << "/         ==     /  /     " << std::endl << std::endl << std::endl;
+
     base::samples::RigidBodyState lcam2body_rbs;
     lcam2body_rbs.setTransform(lcam2body_tf);
     _mast_to_ptu_out.write(lcam2body_rbs);
