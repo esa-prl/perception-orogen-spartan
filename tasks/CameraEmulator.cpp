@@ -170,33 +170,42 @@ void CameraEmulator::updateHook()
     _world2body_transform.write(generateRBS_out());
 
     /* If the simulation sends left frames before right frames */
+    bool null_flag = false;
     if (mConfig.delay > 0) {
         left_frame = readImage(leftFileName);
         if (left_frame != NULL) {
             _img_out_left.write(left_frame);
+            null_flag = true;
         }
         sleep(mConfig.delay);
         right_frame = readImage(rightFileName);
         if (right_frame != NULL) {
             _img_out_right.write(right_frame);
+            null_flag = true;
         }
     }
     /* Else if the right frames come before the left ones */
     else {
         right_frame = readImage(rightFileName);
         if (right_frame != NULL) {
-            std::cout << "CAM_EMU packing RIGHT" << std::endl;
             _img_out_right.write(right_frame);
+            null_flag = true;
         }
         sleep(-(mConfig.delay));
         left_frame = readImage(leftFileName);
         if (left_frame != NULL) {
             _img_out_left.write(left_frame);
+            null_flag = true;
         }
     }
     // Note in the above that we need to check for NULLs, in case
     // the input feeds have been exhausted.
-    
+
+    if (! null_flag) {
+        printf("Could not find (more) images - exiting...\n");
+        stop();
+    }
+
     // Increment the frame counter to iterate to the next files
     frame_counter++;
     return;
