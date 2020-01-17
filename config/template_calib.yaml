@@ -1,0 +1,37 @@
+%YAML:1.0
+---
+image_width: 1024
+image_height: 768
+# camLeft:
+camera_matrix_1: !!opencv-matrix
+   rows: 3
+   cols: 3
+   dt: d
+   data: [fx, 0.0, cx, 0.0, fy, cy, 0.0, 0.0, 1.0]
+distortion_coefficients_1: !!opencv-matrix
+   rows: 1
+   cols: 5
+   dt: d
+   data: [d0, d1, d2, d3, 0.0]
+# camRight
+camera_matrix_2: !!opencv-matrix
+   rows: 3
+   cols: 3
+   dt: d
+   data: [fx, 0.0, cx, 0.0, fy, cy, 0.0, 0.0, 1.0]
+distortion_coefficients_2: !!opencv-matrix
+   rows: 1
+   cols: 5
+   dt: d
+   data: [d0, d1, d2, d3, 0.0]
+# Extrinsic
+rotation_matrix: !!opencv-matrix
+   rows: 3
+   cols: 3
+   dt: d
+   data: [elements of rot matrix from ZYX of -tx -ty -tz]
+translation_coefficients: !!opencv-matrix
+   rows: 3
+   cols: 1
+   dt: d
+   data: [tx, ty, tz]
