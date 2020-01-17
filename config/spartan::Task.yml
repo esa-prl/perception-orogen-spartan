@@ -3,15 +3,16 @@
 body_frame: body
 # no documentation available for this property
 calibration_confs:
-  spartanWidth: 512
-  spartanHeight: 384
+  spartanWidth: 512 #640 #512
+  spartanHeight: 384 #480 #384
   vertical: 1.0
   horizontal: 1.0
   shiftBot: 0.0
-  ## Exoter BB2 calibration
+  ## Camera calibration
   # only uncomment one for either loccam or navcam
-  calib_path: '/home/marta/rock/perception/orogen/spartan/config/exoter_loccam_calib.yaml' #loccam
-  #calib_path: '/home/marta/rock/perception/orogen/spartan/config/navcam_calib.yaml' #navcam
+  #calib_path: '/home/galar/rock/perception/orogen/spartan/config/exoter_loccam_calib.yaml' #loccam
+  calib_path: '/home/galar/rock/perception/orogen/spartan/config/hdpr_bb3_calib.yaml' #hdpr_bb3
+  #calib_path: '/home/galar/rock/perception/orogen/spartan/config/navcam_calib.yaml' #navcam
   dump_file_path: ''
 # the global name that should be used for the internal left_camera_viso2 frame
 left_camera_viso2_frame: left_camera_viso2
@@ -22,8 +23,9 @@ transformer_max_latency: 0.5
 # Minimum system time in seconds between two updates of the status ports
 transformer_status_period: 1.0
 # desired period of the VO estimates (must be GREATER than the camera period)
+# if set to 0.0 it will run as fast as it computes the motion estimate
 desired_period: 0
 # initial waiting time of the VO vomputation at startup
 # recommended 8.0 sec for the navcam so it does not comput VO while the ptu moves
 # it can be 0.0 sec for the loccam since it is fixed
-wait_des: 8.0
+wait_des: 0.0
