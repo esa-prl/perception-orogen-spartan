@@ -16,6 +16,7 @@ Task::~Task()
 }
 
 /*
+ * Template function to use the dynamic transform from navcam2body
 void Task::mast_to_ptu_inTransformerCallback(base::Time const& timestamp, base::samples::RigidBodyState const& sample)
 {
     if (!_left_camera_navcam2body.get(timestamp, lcam2body_tf, false))
@@ -42,6 +43,16 @@ void Task::logProcessedFrames()
 }
 
 
+// Compute the new frequency to achieve a desired IFD
+double Task::setNewVOPeriod(base::commands::Motion2D motion_command)
+{
+    if(motion_command.translation < 0.01)
+        return 0;
+
+    return IFD_des/motion_command.translation;
+}
+
+
 /// The following lines are template definitions for the various state machine
 // hooks defined by Orocos::RTT. See Task.hpp for more detailed
 // documentation about them.
@@ -55,6 +66,7 @@ bool Task::configureHook()
 
     period_des_s =_desired_period.value();
     wait_des = _wait_des.value(); //8.0;
+    IFD_des = _ifd_des.value();
     first_vo_computed = false;
     CalibInfo ci = mpil->getCalibInfo();
     //Affine3d lcam2body_tf;
@@ -141,12 +153,17 @@ void Task::updateHook()
     //std::cout << "time_diff_VO: " << (incoming.time - RBS_old.time).toSeconds() << std::endl;
     //std::cout << "incoming time: " << incoming.time.toSeconds() << std::endl;
     //std::cout << "rbs_old time: " << RBS_old.time.toSeconds() << std::endl;
-    //std::cout << "period s: " << base::Time::fromSeconds(period_des_s) << std::endl;
+    std::cout << "period s: " << base::Time::fromSeconds(period_des_s) << std::endl;
     //std::cout << "t from start var: " << current_time.toSeconds() << std::endl;
     //std::cout << "t from start: " << (base::Time::now() - start_time).toSeconds() << std::endl;
     if ( (base::Time::now() - start_time).toSeconds() > wait_des || !first_vo_computed )
     {
         std::cout << "VO Intial wait passed" << std::endl;
+
+        if (_motion_command_in.read(motion_command) == RTT::NewData && IFD_des > 0)
+        {
+            period_des_s = setNewVOPeriod(motion_command);
+        }
 
         if ( (incoming->time - RBS_old.time).toSeconds() > period_des_s || !first_vo_computed )
         {

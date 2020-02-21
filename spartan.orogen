@@ -25,7 +25,9 @@ task_context "Task" do
         doc "desired period of the VO estiamtes"
     property("wait_des","double").
         doc "initial waiting time at startup"
-    
+    property("ifd_des","double").
+        doc "desired IFD to adjust the freq accordingly. -1 to disable the adaptive frequency"
+
     input_port "mast_to_ptu_in", "base/samples/RigidBodyState"
 
 
@@ -46,6 +48,7 @@ task_context "Task" do
 
     input_port "img_in_left", ro_ptr("base::samples::frame::Frame")
     input_port "img_in_right", ro_ptr("base::samples::frame::Frame")
+    input_port "motion_command_in", "base/commands/Motion2D"
 
     output_port "vo_out", "base::samples::RigidBodyState"
     output_port "delta_vo_out", "base::samples::RigidBodyState"

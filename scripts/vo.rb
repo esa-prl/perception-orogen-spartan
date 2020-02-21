@@ -7,7 +7,7 @@ include Orocos
 
 # Initialize orocos
 Bundles.initialize
-Bundles.transformer.load_conf('/home/hdpr/rock/bundles/rover/config/transforms_scripts_spartan.rb')
+Bundles.transformer.load_conf('/home/marta/rock/bundles/rover/config/exoter_transformations.rb')
 
 # Setup tasks
 Orocos::Process.run 'spartan::Task' => 'spartan',
